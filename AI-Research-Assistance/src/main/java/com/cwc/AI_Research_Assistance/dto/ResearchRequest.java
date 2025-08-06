@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResearchRequest {
-    private String contents;
+    private String content;
     private String operation;
 }
