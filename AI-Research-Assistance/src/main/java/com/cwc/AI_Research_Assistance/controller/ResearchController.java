@@ -4,6 +4,7 @@ import com.cwc.AI_Research_Assistance.dto.ResearchRequest;
 import com.cwc.AI_Research_Assistance.service.ResearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import model.OperationType;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

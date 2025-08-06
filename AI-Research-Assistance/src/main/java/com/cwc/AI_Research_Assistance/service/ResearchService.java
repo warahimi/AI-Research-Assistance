@@ -5,11 +5,13 @@ import com.cwc.AI_Research_Assistance.gemini.GeminiResponseModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import model.OperationType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,12 +26,15 @@ public class ResearchService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private OperationType operationType;
 
     /*
     This method will build the prompt and query the AI model (Gemini) get the response from AI Model.
     Parse it and then return it in the form of String.
      */
     public String processContent(ResearchRequest researchRequest) {
+
+
         // Build the prompt
         String prompt = buildPrompt(researchRequest);
         log.info("############### Prompt Created ###############");
@@ -48,11 +53,16 @@ public class ResearchService {
                 ]
              }
          */
-        Map<String, Object> requestBody = Map.of("contents", new Object[]{
-                Map.of("parts", new Object[]{
+//        Map<String, Object> requestBody = Map.of("contents", new Object[]{
+//                Map.of("parts", new Object[]{
+//                        Map.of("text", prompt)
+//                })
+//        });
+        Map<String, Object> requestBody = Map.of("contents", List.of(
+                Map.of("parts", List.of(
                         Map.of("text", prompt)
-                })
-        });
+                ))
+        ));
 
         // API Call to Gemini using WebClient
         String response = webClient.post()
@@ -97,14 +107,30 @@ public class ResearchService {
 
         switch (researchRequest.getOperation())
         {
-            case "summarize":
-                prompt.append("Provide a clear and concise summary of the following text in few sentences:\n\n");
+            case SUMMARIZE:
+                prompt.append("Summarize the following content into few concise sentences that capture the core message and main points. Avoid copying the exact phrases.\n\n");
                 break;
-            case "suggest":
-                prompt.append("Based on the following content: suggest related topics and further reading. Format the response wiht clear headings and bullet points.");
+            case SUGGEST:
+                prompt.append("Analyze the following text and provide:\n" +
+                        "1. Related topic suggestions\n" +
+                        "2. Suggestions for further reading or research\n\n" +
+                        "Use headings and bullet points.\n\n");
                 break;
+            case REPHRASE:
+                prompt.append("Rephrase the following text to improve clarity and professionalism, while keeping the original meaning:\n\n");
+                break;
+            case EXTRACT_KEYWORDS:
+                prompt.append("Extract and list the most relevant keywords or key phrases from the following text. Format the output as a comma-separated list:\n\n");
+                break;
+            case TRANSLATE:
+                prompt.append("Translate the following text into French. Use natural and fluent language:\n\n");
+                break;
+            case DETECT_SENTIMENT:
+                prompt.append("Analyze the sentiment of the following text and classify it as Positive, Negative, or Neutral. Provide a short explanation:\n\n");
+                break;
+
             default:
-                throw new IllegalArgumentException("UNKNOW OPERATION: " + researchRequest.getOperation());
+                throw new IllegalArgumentException("UNKNOWN OPERATION: " + researchRequest.getOperation());
         }
 
         // Appending the main text / content
