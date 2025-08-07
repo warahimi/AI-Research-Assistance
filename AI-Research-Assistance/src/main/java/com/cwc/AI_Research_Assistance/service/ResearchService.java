@@ -2,14 +2,15 @@ package com.cwc.AI_Research_Assistance.service;
 
 import com.cwc.AI_Research_Assistance.dto.ResearchRequest;
 import com.cwc.AI_Research_Assistance.gemini.GeminiResponseModel;
+import com.cwc.AI_Research_Assistance.model.Research;
+import com.cwc.AI_Research_Assistance.repository.ResearchRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import model.OperationType;
+import com.cwc.AI_Research_Assistance.model.OperationType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class ResearchService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private final ResearchRepository researchRepository;
     private OperationType operationType;
 
     /*
@@ -136,5 +138,34 @@ public class ResearchService {
         // Appending the main text / content
         prompt.append(researchRequest.getContent());
         return prompt.toString();
+    }
+
+    public Research saveReasearch(ResearchRequest researchRequest) {
+        Research research = new Research();
+        research.setContent(researchRequest.getContent());
+        research.setOperation(researchRequest.getOperation());
+        researchRepository.save(research);
+        return research;
+    }
+    public List<Research> getAllResearches() {
+        return researchRepository.findAll();
+    }
+    public Research getResearchById(String id) {
+        return researchRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Research not found with id: " + id));
+    }
+    public Boolean deleteResearchById(String id) {
+        if(Objects.isNull(id) || id.isEmpty()) {
+            throw new IllegalArgumentException("ID cannot be null or empty");
+        }
+        if(!researchRepository.existsById(id)) {
+            throw new IllegalArgumentException("Research not found with id: " + id);
+        }
+        Research research = getResearchById(id);
+        researchRepository.delete(research);
+        return true;
+    }
+    public List<Research> getResearchByOperation(OperationType operationType) {
+        return researchRepository.findByOperation(operationType.name());
     }
 }

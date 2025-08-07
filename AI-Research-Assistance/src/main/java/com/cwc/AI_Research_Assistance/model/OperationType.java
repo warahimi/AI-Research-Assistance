@@ -1,4 +1,4 @@
-package model;
+package com.cwc.AI_Research_Assistance.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
